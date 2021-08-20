@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  reverse-proxy:
+    image: traefik:chevrotin
+    container_name: traefik-reverse-proxy
+    restart: unless-stopped
+    ports:
+    - 80:80
+    - 443:443
+    - 8080:8080
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./traefik.toml:/traefik.toml
+    - ./configuration:/configuration
+    - ./certs:/certs
+    networks:
+    - proxy
+    labels:
+    - traefik.enable=true
+    - traefik.http.routers.traefik.rule=Host(`traefik.${PROXY_DOMAIN}`)
+    - traefik.http.routers.traefik.entryPoints=insecure
+    - traefik.http.services.traefik.loadbalancer.server.port=8080
+
+networks:
+  proxy:
+    external:
+      name: proxy
